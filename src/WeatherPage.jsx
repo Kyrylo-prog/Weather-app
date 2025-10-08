@@ -5,7 +5,7 @@ import "./styles.css";
 export default function WeatherPage() {
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState(null);
-
+  
   // Загружаем сохранённые данные
   useEffect(() => {
     const savedCity = localStorage.getItem("city");
@@ -23,30 +23,33 @@ export default function WeatherPage() {
   }, [city, weather]);
 
   // 🧠 Debounce: задерживаем вызов API на 1 секунду после последнего ввода
-  useEffect(() => {
-    if (!city) return;
+useEffect(() => {
+  if (!city) return;
+  
+  const timeoutId = setTimeout(async () => {
+    try {
 
-    const timeoutId = setTimeout(async () => {
-      try {
-        const fetched = await fetch(
-          `http://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=8e10573c5c1cf1b3efe8ba3f031fcc00`
-        );
-        const geoData = await fetched.json();
-        if (!geoData[0]) return;
-        const { lat, lon } = geoData[0];
+      
+const fetched = await fetch(
+  `https://api.openweathermap.org/geo/1.0/direct?q=${city}&limit=1&appid=${import.meta.env.VITE_API_KEY}`
+);
 
-        const forecastResp = await fetch(
-          `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&appid=8e10573c5c1cf1b3efe8ba3f031fcc00&units=metric&lang=ru`
-        );
-        const forecastData = await forecastResp.json();
-        setWeather(forecastData);
-      } catch (err) {
-        console.error("Ошибка при загрузке данных:", err);
-      }
-    }, 1000); // задержка 1 секунда
+      const geoData = await fetched.json();
+      if (!geoData[0]) return;
+      const { lat, lon } = geoData[0];
 
-    return () => clearTimeout(timeoutId); // очистка, если пользователь продолжает вводить
-  }, [city]);
+      const forecastResp = await fetch(
+        `https://api.openweathermap.org/data/3.0/onecall?lat=${lat}&lon=${lon}&exclude=minutely,hourly,alerts&appid=${import.meta.env.VITE_API_KEY}&units=metric&lang=ru`
+      );
+      const forecastData = await forecastResp.json();
+      setWeather(forecastData);
+    } catch (err) {
+      console.error("Ошибка при загрузке данных:", err);
+    }
+  }, 1000);
+
+  return () => clearTimeout(timeoutId);
+}, [city]);
 
   return (
     <>
